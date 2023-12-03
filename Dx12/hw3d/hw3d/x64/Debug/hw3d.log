@@ -1,0 +1,3 @@
+﻿  WinMain.cpp
+E:\UnityHub\Dx12\hw3d\hw3d\WinMain.cpp(92,13): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
+  hw3d.vcxproj -> E:\UnityHub\Dx12\hw3d\x64\Debug\hw3d.exe
