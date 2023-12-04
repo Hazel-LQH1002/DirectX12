@@ -117,7 +117,7 @@ private:
 	bool rightIsPressed = false;
 
 	bool isInWindow = false;
-	int wheelDeltaCarry = 0;
+	int wheelDeltaCarry = 0;//accumulate the value received in msg, when exceed the threshold it will generate an event
 	bool rawEnabled = false;
 
 	std::queue<Event> buffer;

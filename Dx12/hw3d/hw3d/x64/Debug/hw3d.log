@@ -1,4 +1,4 @@
 ﻿  WinMain.cpp
   The contents of <optional> are available only with C++17 or later.
-E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\WinMain.cpp(72,13): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
+E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\WinMain.cpp(100,13): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
   hw3d.vcxproj -> E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\x64\Debug\hw3d.exe
