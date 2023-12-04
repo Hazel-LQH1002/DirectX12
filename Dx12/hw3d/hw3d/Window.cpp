@@ -1,6 +1,7 @@
 #include "Window.h"
 #include <sstream>
 #include "resource.h"
+#include "WindowsThrowMacros.h"
 
 
 
@@ -51,6 +52,9 @@ HINSTANCE Window::WindowClass::GetInstance() noexcept
 
 // Window Stuff
 Window::Window(int width, int height, const char* name) noexcept
+	:
+	width(width),
+    height(height)
 {
 	// calculate window size based on desired client region size
 	RECT wr;
@@ -58,7 +62,10 @@ Window::Window(int width, int height, const char* name) noexcept
 	wr.right = width + wr.left;
 	wr.top = 100;
 	wr.bottom = height + wr.top;
-	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+	if (AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE) == 0)
+	{
+		throw CHWND_LAST_EXCEPT();
+	}
 
 	// create window & get hWnd
 	hWnd = CreateWindow(
@@ -78,14 +85,14 @@ Window::~Window()
 	DestroyWindow(hWnd);
 }
 
-//void Window::SetTitle(const std::string& title)
-//{
-//	if (SetWindowText(hWnd, title.c_str()) == 0)
-//	{
-//		throw CHWND_LAST_EXCEPT();
-//	}
-//}
-//
+void Window::SetTitle(const std::string& title)
+{
+	if (SetWindowText(hWnd, title.c_str()) == 0)
+	{
+		throw CHWND_LAST_EXCEPT();
+	}
+}
+
 //void Window::EnableCursor() noexcept
 //{
 //	cursorEnabled = true;
@@ -294,125 +301,57 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	//	/*********** END KEYBOARD MESSAGES ***********/
 
 	//	/************* MOUSE MESSAGES ****************/
-	//case WM_MOUSEMOVE:
-	//{
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	// cursorless exclusive gets first dibs
-	//	if (!cursorEnabled)
-	//	{
-	//		if (!mouse.IsInWindow())
-	//		{
-	//			SetCapture(hWnd);
-	//			mouse.OnMouseEnter();
-	//			HideCursor();
-	//		}
-	//		break;
-	//	}
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	// in client region -> log move, and log enter + capture mouse (if not previously in window)
-	//	if (pt.x >= 0 && pt.x < width && pt.y >= 0 && pt.y < height)
-	//	{
-	//		mouse.OnMouseMove(pt.x, pt.y);
-	//		if (!mouse.IsInWindow())
-	//		{
-	//			SetCapture(hWnd);
-	//			mouse.OnMouseEnter();
-	//		}
-	//	}
-	//	// not in client -> log move / maintain capture if button down
-	//	else
-	//	{
-	//		if (wParam & (MK_LBUTTON | MK_RBUTTON))
-	//		{
-	//			mouse.OnMouseMove(pt.x, pt.y);
-	//		}
-	//		// button up -> release capture / log event for leaving
-	//		else
-	//		{
-	//			ReleaseCapture();
-	//			mouse.OnMouseLeave();
-	//		}
-	//	}
-	//	break;
-	//}
-	//case WM_LBUTTONDOWN:
-	//{
-	//	SetForegroundWindow(hWnd);
-	//	if (!cursorEnabled)
-	//	{
-	//		ConfineCursor();
-	//		HideCursor();
-	//	}
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	mouse.OnLeftPressed(pt.x, pt.y);
-	//	break;
-	//}
-	//case WM_RBUTTONDOWN:
-	//{
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	mouse.OnRightPressed(pt.x, pt.y);
-	//	break;
-	//}
-	//case WM_LBUTTONUP:
-	//{
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	mouse.OnLeftReleased(pt.x, pt.y);
-	//	// release mouse if outside of window
-	//	if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
-	//	{
-	//		ReleaseCapture();
-	//		mouse.OnMouseLeave();
-	//	}
-	//	break;
-	//}
-	//case WM_RBUTTONUP:
-	//{
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	mouse.OnRightReleased(pt.x, pt.y);
-	//	// release mouse if outside of window
-	//	if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
-	//	{
-	//		ReleaseCapture();
-	//		mouse.OnMouseLeave();
-	//	}
-	//	break;
-	//}
-	//case WM_MOUSEWHEEL:
-	//{
-	//	// stifle this mouse message if imgui wants to capture
-	//	if (imio.WantCaptureMouse)
-	//	{
-	//		break;
-	//	}
-	//	const POINTS pt = MAKEPOINTS(lParam);
-	//	const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-	//	mouse.OnWheelDelta(pt.x, pt.y, delta);
-	//	break;
-	//}
+	case WM_MOUSEMOVE:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnMouseMove(pt.x, pt.y);
+		break;
+		
+	}
+	case WM_LBUTTONDOWN:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnLeftPressed(pt.x, pt.y);
+		break;
+	}
+	case WM_RBUTTONDOWN:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnRightPressed(pt.x, pt.y);
+		break;
+	}
+	case WM_LBUTTONUP:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnLeftReleased(pt.x, pt.y);
+		// release mouse if outside of window
+		if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
+		{
+			ReleaseCapture();
+			mouse.OnMouseLeave();
+		}
+		break;
+	}
+	case WM_RBUTTONUP:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnRightReleased(pt.x, pt.y);
+		// release mouse if outside of window
+		if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
+		{
+			ReleaseCapture();
+			mouse.OnMouseLeave();
+		}
+		break;
+	}
+	case WM_MOUSEWHEEL:
+	{
+
+		const POINTS pt = MAKEPOINTS(lParam);
+		const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		mouse.OnWheelDelta(pt.x, pt.y, delta);
+		break;
+	}
 	///************** END MOUSE MESSAGES **************/
 
 	///************** RAW MOUSE MESSAGES **************/
@@ -462,65 +401,65 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 }
 
 
-//// Window Exception Stuff
-//std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
-//{
-//	char* pMsgBuf = nullptr;
-//	// windows will allocate memory for err string and make our pointer point to it
-//	const DWORD nMsgLen = FormatMessage(
-//		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-//		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-//		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-//		reinterpret_cast<LPSTR>(&pMsgBuf), 0, nullptr
-//	);
-//	// 0 string length returned indicates a failure
-//	if (nMsgLen == 0)
-//	{
-//		return "Unidentified error code";
-//	}
-//	// copy error string from windows-allocated buffer to std::string
-//	std::string errorString = pMsgBuf;
-//	// free windows buffer
-//	LocalFree(pMsgBuf);
-//	return errorString;
-//}
-//
+// Window Exception Stuff
+std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
+{
+	char* pMsgBuf = nullptr;
+	// windows will allocate memory for err string and make our pointer point to it
+	const DWORD nMsgLen = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPSTR>(&pMsgBuf), 0, nullptr
+	);
+	// 0 string length returned indicates a failure
+	if (nMsgLen == 0)
+	{
+		return "Unidentified error code";
+	}
+	// copy error string from windows-allocated buffer to std::string
+	std::string errorString = pMsgBuf;
+	// free windows buffer
+	LocalFree(pMsgBuf);
+	return errorString;
+}
 
-//Window::HrException::HrException(int line, const char* file, HRESULT hr) noexcept
-//	:
-//	Exception(line, file),
-//	hr(hr)
-//{}
-//
-//const char* Window::HrException::what() const noexcept
-//{
-//	std::ostringstream oss;
-//	oss << GetType() << std::endl
-//		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
-//		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
-//		<< "[Description] " << GetErrorDescription() << std::endl
-//		<< GetOriginString();
-//	whatBuffer = oss.str();
-//	return whatBuffer.c_str();
-//}
-//
-//const char* Window::HrException::GetType() const noexcept
-//{
-//	return "Chili Window Exception";
-//}
-//
-//HRESULT Window::HrException::GetErrorCode() const noexcept
-//{
-//	return hr;
-//}
-//
-//std::string Window::HrException::GetErrorDescription() const noexcept
-//{
-//	return Exception::TranslateErrorCode(hr);
-//}
-//
-//
-//const char* Window::NoGfxException::GetType() const noexcept
-//{
-//	return "Chili Window Exception [No Graphics]";
-//}
+
+Window::HrException::HrException(int line, const char* file, HRESULT hr) noexcept
+	:
+	Exception(line, file),
+	hr(hr)
+{}
+
+const char* Window::HrException::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType() << std::endl
+		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
+		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
+		<< "[Description] " << GetErrorDescription() << std::endl
+		<< GetOriginString();
+	whatBuffer = oss.str();
+	return whatBuffer.c_str();
+}
+
+const char* Window::HrException::GetType() const noexcept
+{
+	return "Chili Window Exception";
+}
+
+HRESULT Window::HrException::GetErrorCode() const noexcept
+{
+	return hr;
+}
+
+std::string Window::HrException::GetErrorDescription() const noexcept
+{
+	return Exception::TranslateErrorCode(hr);
+}
+
+
+const char* Window::NoGfxException::GetType() const noexcept
+{
+	return "Chili Window Exception [No Graphics]";
+}

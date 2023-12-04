@@ -51,9 +51,17 @@ int CALLBACK WinMain(
 	while ((gResult = GetMessage(&msg, nullptr, 0, 0) > 0)) { //if = 0, retrieves WM_QUIT; < 0 then error 
 		TranslateMessage(&msg); //will not modify msg, translate virtual key msg to character msg
 		DispatchMessage(&msg);//pass the msg to win32 procedure
-		//VK_MENU is ALT key
+		////VK_MENU is ALT key
 		if (wnd.kbd.KeyIsPressed(VK_MENU)) {
 			MessageBox(nullptr, "Something Happen!", "Space Key Was Pressed", MB_OK | MB_ICONEXCLAMATION);
+		}
+		while (!wnd.mouse.IsEmpty()) {
+			const auto e = wnd.mouse.Read();
+			if (e.GetType() == Mouse::Event::Type::Move) {
+				std::ostringstream oss;
+				oss << "Mouse Position: (" << e.GetPosX() << "," << e.GetPosY() << ")";
+				wnd.SetTitle(oss.str());
+			}
 		}
 	}
 
