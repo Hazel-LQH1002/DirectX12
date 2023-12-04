@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include "Window.h"
+#include "App.h"
 
 
 ////LRESULT: 32bit int                //msg ID
@@ -41,64 +42,81 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-
-	///* Display Window */
-	Window wnd(800,300, "My Window");
-
-	/* Get Message */
-	MSG msg;                //nullptr, means get message from all windows  //0,0 means accept all msg
-	BOOL gResult;
-	while ((gResult = GetMessage(&msg, nullptr, 0, 0) > 0)) { //if = 0, retrieves WM_QUIT; < 0 then error 
-		TranslateMessage(&msg); //will not modify msg, translate virtual key msg to character msg
-		DispatchMessage(&msg);//pass the msg to win32 procedure
-		////VK_MENU is ALT key
-		if (wnd.kbd.KeyIsPressed(VK_MENU)) {
-			MessageBox(nullptr, "Something Happen!", "Space Key Was Pressed", MB_OK | MB_ICONEXCLAMATION);
-		}
-		static int i = 0;
-		while (!wnd.mouse.IsEmpty()) {
-			const auto e = wnd.mouse.Read();
-			switch (e.GetType())
-			{
-			case Mouse::Event::Type::Leave:
-
-				wnd.SetTitle("Mouse Gone");
-				break;
-
-			//case Mouse::Event::Type::Move:
-			//{
-			//	std::ostringstream oss;
-			//	oss << "Mouse Position: (" << e.GetPosX() << "," << e.GetPosY() << ")";
-			//	wnd.SetTitle(oss.str());
-
-			//}
-			//break;
-			case Mouse::Event::Type::WheelUp:
-				i++;
-				{
-					std::ostringstream oss;
-					oss << "Up: " << i;
-					wnd.SetTitle(oss.str());
-				}
-				break;
-			case Mouse::Event::Type::WheelDown:
-				i--;
-				{
-					std::ostringstream oss;
-					oss << "Down: " << i;
-					wnd.SetTitle(oss.str());
-				}
-				break;
-			}
-		}
+	try {
+		return App{}.Go();
 	}
-
-	if (gResult == -1) {
-		return -1;
+	catch (const ChiliException& e)
+	{
+		MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONEXCLAMATION);
 	}
-	else {
-		return msg.wParam;//if WM_QUIT, it will keep the msg value in wParam
+	catch (const std::exception& e)
+	{
+		MessageBox(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONEXCLAMATION);
 	}
+	catch (...)
+	{
+		MessageBox(nullptr, "No details available", "Unknown Exception", MB_OK | MB_ICONEXCLAMATION);
+	}
+	return -1;
 
-	return 0;
+
+	/////* Display Window */
+	//Window wnd(800,300, "My Window");
+
+	///* Get Message */
+	//MSG msg;                //nullptr, means get message from all windows  //0,0 means accept all msg
+	//BOOL gResult;
+	//while ((gResult = GetMessage(&msg, nullptr, 0, 0) > 0)) { //if = 0, retrieves WM_QUIT; < 0 then error 
+	//	TranslateMessage(&msg); //will not modify msg, translate virtual key msg to character msg
+	//	DispatchMessage(&msg);//pass the msg to win32 procedure
+	//	////VK_MENU is ALT key
+	//	if (wnd.kbd.KeyIsPressed(VK_MENU)) {
+	//		MessageBox(nullptr, "Something Happen!", "Space Key Was Pressed", MB_OK | MB_ICONEXCLAMATION);
+	//	}
+	//	static int i = 0;
+	//	while (!wnd.mouse.IsEmpty()) {
+	//		const auto e = wnd.mouse.Read();
+	//		switch (e.GetType())
+	//		{
+	//		case Mouse::Event::Type::Leave:
+
+	//			wnd.SetTitle("Mouse Gone");
+	//			break;
+
+	//		//case Mouse::Event::Type::Move:
+	//		//{
+	//		//	std::ostringstream oss;
+	//		//	oss << "Mouse Position: (" << e.GetPosX() << "," << e.GetPosY() << ")";
+	//		//	wnd.SetTitle(oss.str());
+
+	//		//}
+	//		//break;
+	//		case Mouse::Event::Type::WheelUp:
+	//			i++;
+	//			{
+	//				std::ostringstream oss;
+	//				oss << "Up: " << i;
+	//				wnd.SetTitle(oss.str());
+	//			}
+	//			break;
+	//		case Mouse::Event::Type::WheelDown:
+	//			i--;
+	//			{
+	//				std::ostringstream oss;
+	//				oss << "Down: " << i;
+	//				wnd.SetTitle(oss.str());
+	//			}
+	//			break;
+	//		}
+	//	}
+	//}
+
+	//if (gResult == -1) {
+	//	return -1;
+	//}
+	//else {
+	//	return msg.wParam;//if WM_QUIT, it will keep the msg value in wParam
+	//}
+
+	//return 0;
 }
