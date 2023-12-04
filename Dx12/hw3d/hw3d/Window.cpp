@@ -1,5 +1,6 @@
 #include "Window.h"
-
+#include <sstream>
+#include "resource.h"
 
 
 
@@ -17,12 +18,18 @@ Window::WindowClass::WindowClass() noexcept
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = GetInstance();
-	wc.hIcon = nullptr;
+	wc.hIcon = static_cast<HICON>(LoadImage(
+		GetInstance(), MAKEINTRESOURCE(IDI_ICON1),
+		IMAGE_ICON, 32, 32, 0
+	));
 	wc.hCursor = nullptr;
 	wc.hbrBackground = nullptr;
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = GetName();
-	wc.hIconSm = nullptr;
+	wc.hIconSm = static_cast<HICON>(LoadImage(
+		GetInstance(), MAKEINTRESOURCE(IDI_ICON1),
+		IMAGE_ICON, 16, 16, 0
+	));
 	RegisterClassEx(&wc);
 }
 
@@ -207,8 +214,13 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
-	}
+
 		// clear keystate when window loses focus to prevent input getting "stuck"
+	case WM_KILLFOCUS:
+		kbd.ClearState();
+		break;
+	//}
+		
 	//case WM_KILLFOCUS:
 	//	kbd.ClearState();
 	//	break;
@@ -230,7 +242,26 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	//	break;
 
 	//	/*********** KEYBOARD MESSAGES ***********/
-	//case WM_KEYDOWN:
+	case WM_KEYDOWN:
+
+	//include handling Alt and F10
+	case WM_SYSKEYDOWN:
+		//0x40000000 is 30, which indicated the previous state, if previous state is pressed then lparam 30 is 1
+		//so generally it is used to check whether the key is being held for a long time, if it is being hold, avoid sending msg all the time
+			if (!(lParam & 0x40000000) || kbd.AutorepeatIsEnabled()) // filter autorepeat
+			{
+				kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
+			}
+		break;
+
+	case WM_KEYUP:
+		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
+		break;
+
+	case WM_CHAR:
+		kbd.OnChar(static_cast<unsigned char>(wParam));
+		break;
+
 	//	// syskey commands need to be handled to track ALT key (VK_MENU) and F10
 	//case WM_SYSKEYDOWN:
 	//	// stifle this keyboard message if imgui wants to capture
@@ -425,7 +456,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	//	break;
 	//}
 	///************** END RAW MOUSE MESSAGES **************/
-	//}
+	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

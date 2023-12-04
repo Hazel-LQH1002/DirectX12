@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "Keyboard.h"
 
 
 
@@ -34,6 +35,8 @@ private:
 	static LRESULT CALLBACK HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 
+public:
+	Keyboard kbd;
 private:
 
 	int width;
