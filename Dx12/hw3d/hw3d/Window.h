@@ -50,7 +50,7 @@ private:
 		~WindowClass();
 		WindowClass(const WindowClass&) = delete;
 		WindowClass& operator=(const WindowClass&) = delete;
-		static constexpr const char* wndClassName = "MWindow";
+		static constexpr const char* wndClassName = "Chili Direct3D Engine Window";
 		static WindowClass wndClass;
 		HINSTANCE hInst;
 	};
@@ -60,7 +60,7 @@ public:
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 	void SetTitle(const std::string& title);
-	static std::optional<int> ProcessMessages();
+	static std::optional<int> ProcessMessages() noexcept;
 	Graphics& Gfx();
 
 private:
@@ -79,3 +79,7 @@ private:
 	HWND hWnd;
 	std::unique_ptr<Graphics> pGfx;//defer the construction of graphics
 };
+
+#define CHWND_EXCEPT( hr ) Window::HrException( __LINE__,__FILE__,(hr) )
+#define CHWND_LAST_EXCEPT() Window::HrException( __LINE__,__FILE__,GetLastError() )
+#define CHWND_NOGFX_EXCEPT() Window::NoGfxException( __LINE__,__FILE__ )
