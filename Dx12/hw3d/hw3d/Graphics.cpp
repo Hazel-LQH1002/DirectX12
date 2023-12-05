@@ -104,7 +104,6 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 
 void Graphics::DrawTestTriangle(float angle, float x, float y)
 {
-	namespace wrl = Microsoft::WRL;
 	HRESULT hr;
 
 	struct Vertex
@@ -112,8 +111,10 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 		struct {
 			float x;
 			float y;
+			float z;
 		} pos;
-		struct {
+		struct
+		{
 			unsigned char r;
 			unsigned char g;
 			unsigned char b;
@@ -125,13 +126,14 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 	// create vertex buffer (1 2d triangle at center of screen)
 	Vertex vertices[] =
 	{
-		{ 0.0f,0.5f,255,0,0,0 },
-		{ 0.5f,-0.5f,0,255,0,0 },
-		{ -0.5f,-0.5f,0,0,255,0 },
-		{ -0.3f,0.3f,0,255,0,0 },
-		{ 0.3f,0.3f,0,0,255,0 },
-		{ 0.0f,-1.0f,255,0,0,0 },
-		
+		{ -1.0f,-1.0f,-1.0f, 255,0,0},
+		{ 1.0f,-1.0f,-1.0f,0,255,0	 },
+		{ -1.0f,1.0f,-1.0f,0,0,255 },
+		{ 1.0f,1.0f,-1.0f,255,255,0	  },
+		{ -1.0f,-1.0f,1.0f,255,0,255 },
+		{ 1.0f,-1.0f,1.0f,0,255,255  },
+		{ -1.0f,1.0f,1.0f,0,0,0	 },
+		{ 1.0f,1.0f,1.0f,255,255,255 },
 	};
 	//vertices[0].color.g = 255;
 	wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
@@ -155,10 +157,12 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 	// create index buffer
 	const unsigned short indices[] =
 	{
-		0,1,2,
-		0,2,3,
-		0,4,1,
-		2,1,5,
+		0,2,1, 2,3,1,
+		1,3,5, 3,7,5,
+		2,6,3, 3,6,7,
+		4,5,7, 4,7,6,
+		0,4,2, 2,4,6,
+		0,1,4, 1,5,4
 	};
 	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
 	D3D11_BUFFER_DESC ibd = {};
@@ -186,10 +190,11 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 	{
 		dx::XMMatrixTranspose
 		(
-
 				dx::XMMatrixRotationZ(angle)*
-				dx::XMMatrixScaling(3.0 / 4.0f, 1.0f, 1.0f)*
-			    dx::XMMatrixTranslation(x,y, 0.0f)
+				dx::XMMatrixRotationX(angle)*
+				dx::XMMatrixTranslation(x,y,4.0f)*
+				dx::XMMatrixPerspectiveLH(1.0f,3.0f / 4.0f,0.5f,10.0f)
+
 
 			
 		)
@@ -211,6 +216,46 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 
 	// bind constant buffer to vertex shader
 	pContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
+
+
+
+	// lookup table for cube face colors
+	struct ConstantBuffer2
+	{
+		struct
+		{
+			float r;
+			float g;
+			float b;
+			float a;
+		} face_colors[6];
+	};
+	const ConstantBuffer2 cb2 =
+	{
+		{
+			{1.0f,0.0f,1.0f},
+			{1.0f,0.0f,0.0f},
+			{0.0f,1.0f,0.0f},
+			{0.0f,0.0f,1.0f},
+			{1.0f,1.0f,0.0f},
+			{0.0f,1.0f,1.0f},
+		}
+	};
+	wrl::ComPtr<ID3D11Buffer> pConstantBuffer2;
+	D3D11_BUFFER_DESC cbd2;
+	cbd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbd2.Usage = D3D11_USAGE_DEFAULT;
+	cbd2.CPUAccessFlags = 0u;
+	cbd2.MiscFlags = 0u;
+	cbd2.ByteWidth = sizeof(cb2);
+	cbd2.StructureByteStride = 0u;
+	D3D11_SUBRESOURCE_DATA csd2 = {};
+	csd2.pSysMem = &cb2;
+	GFX_THROW_INFO(pDevice->CreateBuffer(&cbd2, &csd2, &pConstantBuffer2));
+
+	// bind constant buffer to pixel shader
+	pContext->PSSetConstantBuffers(0u, 1u, pConstantBuffer2.GetAddressOf());
+
 
 
 
@@ -241,8 +286,8 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
 	const D3D11_INPUT_ELEMENT_DESC ied[] =
 	{
 		// the name (Position) must be same as defined in vertex shader hlsl file
-		{ "Position",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		{ "Color",0,DXGI_FORMAT_R8G8B8A8_UNORM,0,8u,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "Color",0,DXGI_FORMAT_R8G8B8A8_UNORM,0,12u,D3D11_INPUT_PER_VERTEX_DATA,0 },
 		//R32G32 means two 32 bits float(x,y)
 		//8u because before color, there are two floating points proceed color, which are 8 bytes
 	};
