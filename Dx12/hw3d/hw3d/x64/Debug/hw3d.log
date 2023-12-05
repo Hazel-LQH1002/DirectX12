@@ -1,2 +1,11 @@
-﻿  Graphics.cpp
+﻿  App.cpp
+  DxgiInfoManager.cpp
+  Graphics.cpp
+E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\Graphics.cpp(13,1): warning C4005: 'GFX_DEVICE_REMOVED_EXCEPT': macro redefinition
+E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\Graphics.cpp(6): message : see previous definition of 'GFX_DEVICE_REMOVED_EXCEPT'
+  Window.cpp
+E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\Window.cpp(67,1): warning C4297: 'Window::Window': function assumed not to throw an exception but does
+E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\hw3d\Window.cpp(67,1): message : __declspec(nothrow), throw(), noexcept(true), or noexcept was specified on the function
+  WinMain.cpp
+  Generating Code...
   hw3d.vcxproj -> E:\UnityHub\LearnDirectx12\DirectX12\Dx12\hw3d\x64\Debug\hw3d.exe
