@@ -27,8 +27,13 @@ void App::DoFrame()
 	//std::ostringstream oss;
 	//oss << "Time elapsed: " << std::setprecision(1) << std::fixed << t << "s";
 	//wnd.SetTitle(oss.str());
-	const float c = sin(timer.Peek()) / 2.0f + 0.5f;
-	wnd.Gfx().ClearBuffer(c, c, 1.0f);
+	const float c = sin(timer.Peek()) / 2.0f + 0.8f;
+	wnd.Gfx().ClearBuffer(c, c, c);
+	wnd.Gfx().DrawTestTriangle(
+		-timer.Peek(),
+		0.0f,
+		0.0f
+	);
 	wnd.Gfx().DrawTestTriangle(
 		timer.Peek(),
 		wnd.mouse.GetPosX() / 400.0f - 1.0f,
